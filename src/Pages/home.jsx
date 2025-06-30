@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Pagination from "../Components/Pagnation/pagination";
 import Loading from "../Components/Utility/loading";
+import { useBlog } from "../context/blogContext";
 
 const Home = ({ setCurrentPage, setBlogId }) => {
   const [blogs, setBlogs] = useState([]);
@@ -21,7 +22,8 @@ const Home = ({ setCurrentPage, setBlogId }) => {
   const [error, setError] = useState("");
   const [authorEmails, setAuthorEmails] = useState({});
 
-  const { user, api } = useAuth();
+  const { user } = useAuth();
+  const { api } = useBlog();
 
   useEffect(() => {
     loadBlogs(blogPage);
@@ -41,7 +43,7 @@ const Home = ({ setCurrentPage, setBlogId }) => {
           if (!emailsMap[blog.authorId]) {
             try {
               const res = await fetch(
-                `http://localhost:8080/api/user/${blog.authorId}`
+                `${import.meta.env.VITE_BASE_URL}/user/${blog.authorId}`
               );
               const data = await res.json();
               emailsMap[blog.authorId] = data.email;

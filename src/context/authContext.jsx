@@ -8,9 +8,9 @@ const createAuthHeader = (email, password) => {
   return `Basic ${credentials}`;
 };
 
-const BASE_URL = "http://localhost:8080/api";
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-const api = {
+const authApi = {
   login: async (email, password) => {
     try {
       const res = await fetch(`${BASE_URL}/user/login`, {
@@ -20,8 +20,8 @@ const api = {
       });
 
       if (!res.ok) throw new Error("Invalid credentials");
-      const message = await res.text(); // backend returns plain text
-      return { email, password }; // return credentials for use in auth header
+      const message = await res.text();
+      return { email, password };
     } catch (error) {
       throw new Error("Login failed");
     }
@@ -53,71 +53,29 @@ const api = {
     }
   },
 
-  getBlogs: async (page = 0, size = 12) => {
+  getAllUsers: async () => {
     try {
-      const res = await fetch(`${BASE_URL}/blogs`);
-      if (!res.ok) throw new Error("Failed to fetch blogs");
-      const data = await res.json();
-      const blogs = Array.isArray(data) ? data : [];
-
-      const startIndex = page * size;
-      const paginatedBlogs = blogs.slice(startIndex, startIndex + size);
-
-      return {
-        blogs: paginatedBlogs,
-        totalPages: Math.ceil(blogs.length / size),
-        totalBlogs: blogs.length,
-      };
-    } catch (error) {
-      console.error("Error in getBlogs:", error);
-      return {
-        blogs: [],
-        totalPages: 0,
-        totalBlogs: 0,
-      };
-    }
-  },
-
-  getBlog: async (id) => {
-    try {
-      const res = await fetch(`${BASE_URL}/blogs/${id}`);
-      if (!res.ok) throw new Error("Failed to fetch blog");
-      return await res.json();
-    } catch (error) {
-      console.error("Error in getBlog:", error);
-      throw error;
-    }
-  },
-
-  createBlog: async (title, content, userCredentials) => {
-    try {
-      const res = await fetch(`${BASE_URL}/blogs/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: createAuthHeader(
-            userCredentials.email,
-            userCredentials.password
-          ),
-        },
-        body: JSON.stringify({
-          title,
-          content,
-          createdAt: new Date().toISOString(), // optional
-          updatedAt: new Date().toISOString(), // optional
-        }),
-      });
-
-      if (!res.ok) throw new Error("Failed to create blog");
+      const res = await fetch(`${BASE_URL}/user`);
+      if (!res.ok) throw new Error("Failed to fetch users");
       return await res.json();
     } catch (error) {
       throw error;
     }
   },
 
-  updateBlog: async (id, title, content, userCredentials) => {
+  getUserById: async (id) => {
     try {
-      const res = await fetch(`${BASE_URL}/blogs/update/${id}`, {
+      const res = await fetch(`${BASE_URL}/user/${id}`);
+      if (!res.ok) throw new Error("Failed to fetch user");
+      return await res.json();
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  updateUser: async (userData, userCredentials) => {
+    try {
+      const res = await fetch(`${BASE_URL}/user`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -126,23 +84,19 @@ const api = {
             userCredentials.password
           ),
         },
-        body: JSON.stringify({
-          title,
-          content,
-          updatedAt: new Date().toISOString(),
-        }),
+        body: JSON.stringify(userData),
       });
 
-      if (!res.ok) throw new Error("Failed to update blog");
-      return await res.json();
+      if (!res.ok) throw new Error("Failed to update user");
+      return await res.text();
     } catch (error) {
       throw error;
     }
   },
 
-  deleteBlog: async (id, userCredentials) => {
+  deleteUser: async (id, userCredentials) => {
     try {
-      const res = await fetch(`${BASE_URL}/blogs/delete/${id}`, {
+      const res = await fetch(`${BASE_URL}/user/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: createAuthHeader(
@@ -152,8 +106,8 @@ const api = {
         },
       });
 
-      if (!res.ok) throw new Error("Failed to delete blog");
-      return { success: true };
+      if (!res.ok) throw new Error("Failed to delete user");
+      return await res.text();
     } catch (error) {
       throw error;
     }
@@ -180,7 +134,7 @@ const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const userData = await api.login(email, password);
+      const userData = await authApi.login(email, password);
       setUser(userData);
       try {
         if (typeof localStorage !== "undefined") {
@@ -197,7 +151,7 @@ const AuthProvider = ({ children }) => {
 
   const signup = async (name, email, password) => {
     try {
-      const userData = await api.signup(name, email, password);
+      const userData = await authApi.signup(name, email, password);
       setUser(userData);
       try {
         if (typeof localStorage !== "undefined") {
@@ -213,6 +167,7 @@ const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    authApi.logout(); // Call backend logout
     setUser(null);
     try {
       if (typeof localStorage !== "undefined") {
@@ -223,13 +178,33 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Enhanced API object that includes user credentials
-  const enhancedApi = {
-    ...api,
-    createBlog: (title, content) => api.createBlog(title, content, user),
-    updateBlog: (id, title, content) =>
-      api.updateBlog(id, title, content, user),
-    deleteBlog: (id) => api.deleteBlog(id, user),
+  const updateUserProfile = async (userData) => {
+    try {
+      const result = await authApi.updateUser(userData, user);
+      // Update local user data with new information
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      try {
+        if (typeof localStorage !== "undefined") {
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+        }
+      } catch (error) {
+        console.error("Error saving updated user to storage:", error);
+      }
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const deleteUserAccount = async (id) => {
+    try {
+      const result = await authApi.deleteUser(id, user);
+      logout(); // Auto logout after account deletion
+      return result;
+    } catch (error) {
+      throw error;
+    }
   };
 
   return (
@@ -239,8 +214,10 @@ const AuthProvider = ({ children }) => {
         login,
         signup,
         logout,
+        updateUserProfile,
+        deleteUserAccount,
         loading,
-        api: enhancedApi,
+        authApi,
       }}
     >
       {children}

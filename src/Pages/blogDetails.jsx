@@ -1,13 +1,13 @@
 import { useState, useEffect} from 'react';
 import { ChevronLeft, Calendar,  Eye,  Heart, MessageCircle, Clock, } from 'lucide-react';
-import { useAuth } from '../context/authContext';
+import { useBlog } from '../context/blogContext';
 
 // Blog Detail Component
 const BlogDetail = ({ setCurrentPage, blogId }) => {
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { api } = useAuth();
+  const { api } = useBlog();
 
   useEffect(() => {
     if (blogId) {

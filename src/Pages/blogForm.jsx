@@ -2,9 +2,11 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { useAuth } from '../context/authContext';
+import { useBlog } from '../context/blogContext';
 
 const BlogForm = ({ setCurrentPage, blogId, isEdit = false }) => {
-  const { api, user } = useAuth();
+  const { user } = useAuth();
+  const { api } = useBlog();
   const [formData, setFormData] = useState({ title: '', content: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
