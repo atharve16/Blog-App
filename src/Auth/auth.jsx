@@ -17,7 +17,6 @@ const Auth = ({ setCurrentPage }) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
       if (isLogin) {
         await login(formData.email, formData.password);
@@ -33,97 +32,102 @@ const Auth = ({ setCurrentPage }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="flex justify-between items-center">
-          <button
-            type="button"
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-100 px-4 py-12">
+      <div className="w-full max-w-md bg-white/70 backdrop-blur-xl border border-white/40 shadow-2xl rounded-3xl p-8 space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div
             onClick={() => setCurrentPage("home")}
-            className="text-sm text-blue-600 hover:text-blue-800 underline"
+            className="flex items-center justify-center cursor-pointer group"
           >
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
-              ← Blogify
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-200 to-purple-200 rounded-lg flex items-center justify-center">
+              <img className="w-6 h-6 text-white" src={"/logo.png"} />
+            </div>
+            <span className="ml-3 text-2xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Blogify
             </span>
-          </button>
-          <h2 className="text-2xl font-extrabold text-gray-900 flex-1 text-right">
-            {isLogin ? "Sign in" : "Sign up"}
+          </div>
+          <h2 className="text-3xl font-extrabold text-gray-800">
+            {isLogin ? "Sign In" : "Create an Account"}
           </h2>
+          <p className="text-sm text-gray-500">
+            {isLogin
+              ? "Welcome back, writer!"
+              : "Start your blogging journey now"}
+          </p>
         </div>
 
-        <div className="mt-8 space-y-6">
-          <form
-            className="rounded-md shadow-sm -space-y-px"
-            onSubmit={handleSubmit}
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && (
+            <input
+              type="text"
+              placeholder="Full Name"
+              required
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white/80"
+            />
+          )}
+          <input
+            type="email"
+            placeholder="Email address"
+            required
+            value={formData.email}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
+            className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white/80"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            required
+            value={formData.password}
+            onChange={(e) =>
+              setFormData({ ...formData, password: e.target.value })
+            }
+            className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white/80"
+          />
+
+          {error && (
+            <div className="text-red-600 text-sm text-center">{error}</div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
           >
-            {!isLogin && (
-              <div>
-                <input
-                  type="text"
-                  required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Full name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                />
-              </div>
-            )}
-            <div>
-              <input
-                type="email"
-                required
-                className={`appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 ${
-                  !isLogin ? "" : "rounded-t-md"
-                } focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
-                placeholder="Email address"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <input
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-              />
-            </div>
+            {loading ? "Processing..." : isLogin ? "Sign In" : "Sign Up"}
+          </button>
+        </form>
 
-            {error && (
-              <div className="text-red-600 text-sm text-center mt-2">
-                {error}
-              </div>
-            )}
-
-            <div className="mt-4">
+        {/* Switch Mode */}
+        <div className="text-center text-sm text-gray-600">
+          {isLogin ? (
+            <>
+              Don't have an account?{" "}
               <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                onClick={() => setIsLogin(false)}
+                className="text-blue-600 hover:underline font-medium"
               >
-                {loading ? "Processing..." : isLogin ? "Sign in" : "Sign up"}
+                Sign Up
               </button>
-            </div>
-          </form>
-
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-blue-600 hover:text-blue-500 text-sm"
-            >
-              {isLogin
-                ? "Don't have an account? Sign up"
-                : "Already have an account? Sign in"}
-            </button>
-          </div>
+            </>
+          ) : (
+            <>
+              Already a member?{" "}
+              <button
+                onClick={() => setIsLogin(true)}
+                className="text-blue-600 hover:underline font-medium"
+              >
+                Sign In
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
